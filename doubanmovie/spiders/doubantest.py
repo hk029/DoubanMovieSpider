@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
 import scrapy
 from doubanmovie.items import DoubanmovieItem
+from scrapy.http import Request
 
 class DoubantestSpider(scrapy.Spider):
     name = "doubantest"
-    allowed_domains = ["douban.com/top250"]
+    redis_key = 'doubantest:start_urls'
+    #allowed_domains = ["douban.com/top250"]
     start_urls = (
         'http://movie.douban.com/top250/',
     )
-    url = 'http://movie.douban.com/top250/'
+    url = 'http://movie.douban.com/top250'
 
     def parse(self, response):
         # print response.body
+
         selector = scrapy.Selector(response)
         Movies = selector.xpath('//div[@class="info"]')
         for eachMovie in Movies:
-            #get the title of each movie
             item = DoubanmovieItem()
+            #get the title of each movie
             title = eachMovie.xpath('div[@class="hd"]/a')
             fulltitle = title.xpath('string(.)').extract()[0].replace('\n','').replace(' ','')
             print fulltitle
@@ -37,5 +40,5 @@ class DoubantestSpider(scrapy.Spider):
         nextPage = selector.xpath('//span[@class="next"]/link/@href').extract()
         if nextPage:
             nextPage = nextPage[0]
-            print nextPage
-            yield scrapy.Request(self.url+nextPage,callback=self.parse)
+            print self.url+nextPage
+            yield Request(self.url+nextPage,callback=self.parse)
